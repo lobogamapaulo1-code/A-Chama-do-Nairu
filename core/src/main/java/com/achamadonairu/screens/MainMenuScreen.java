@@ -4,16 +4,26 @@ import com.achamadonairu.Main;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MainMenuScreen implements Screen {
+
+    private static final float LARGURA_VIRTUAL = 960f;
+    private static final float ALTURA_VIRTUAL = 540f;
 
     private Main jogo;
     private SpriteBatch batch;
     private BitmapFont font;
     private GlyphLayout layout;
+    private OrthographicCamera camera;
+    private Viewport viewport;
+    private final Vector3 toque = new Vector3();
 
     public MainMenuScreen(Main jogo) {
         this.jogo = jogo;
@@ -24,17 +34,23 @@ public class MainMenuScreen implements Screen {
         batch = new SpriteBatch();
         font = new BitmapFont();
         layout = new GlyphLayout();
+
+        camera = new OrthographicCamera();
+        viewport = new FitViewport(LARGURA_VIRTUAL, ALTURA_VIRTUAL, camera);
+        viewport.apply(true);
     }
 
     @Override
     public void render(float delta) {
 
-        float largura = Gdx.graphics.getWidth();
-        float altura = Gdx.graphics.getHeight();
+        float largura = viewport.getWorldWidth();
+        float altura = viewport.getWorldHeight();
 
         Gdx.gl.glClearColor(0.05f, 0.08f, 0.15f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        camera.update();
+        batch.setProjectionMatrix(camera.combined);
         batch.begin();
 
         // =============================
@@ -81,9 +97,11 @@ public class MainMenuScreen implements Screen {
 
         if (Gdx.input.justTouched()) {
 
-            float toqueX = Gdx.input.getX();
-            float toqueY =
-                altura - Gdx.input.getY();
+            toque.set(Gdx.input.getX(), Gdx.input.getY(), 0f);
+            viewport.unproject(toque);
+
+            float toqueX = toque.x;
+            float toqueY = toque.y;
 
             // Área maior para facilitar o toque
             float centroX = largura / 2f;
@@ -102,6 +120,7 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
+        viewport.update(width, height, true);
     }
 
     @Override
